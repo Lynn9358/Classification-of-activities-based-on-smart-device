@@ -1,0 +1,147 @@
+---
+title: "626 HW1"
+author: "Wenjing Li"
+date: "2023-04-15"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(caret)
+library(glmnet)
+library(doParallel)
+library(caret)
+library(gbm)
+library(xgboost)
+library(e1071)
+library(SwarmSVM)
+library(class)
+```
+
+```{r,include=FALSE}
+#Task 1
+#data cleaning for training data
+set.seed(15)
+trd = training_data
+tsd = test_data
+trd$status1 <- ifelse(trd$activity > 3,0,1)
+trd$status2 <- ifelse(trd$activity <= 6, trd$activity, 7)
+trd = trd[,!colnames(trd) %in% "activity"]
+
+
+#Create training set and test set
+index = as.vector(as.numeric(rownames(table(trd$subject))))
+testindex <- list()
+testindex[[1]] = sample(index,7,replace = FALSE)
+testindex[[2]] = sample(index[!(index %in% testindex[[1]])],7,replace = FALSE)
+testindex[[3]] = setdiff(index,union(testindex[[1]],testindex[[2]]))
+
+```
+
+#Problem 1-3
+For problem 1-3 see <https://github.com/Lynn9358/BIOSTAT626-Midterm1>
+
+#Problem 4 Baseline algorithm 
+## Task 1 
+For the first task, I used the logistic regression model as baseline algorithm with all the variable concluded. The result shows high accuracy, but it is not time effective.
+```{r,include=FALSE}
+#GLM model
+acc1_glm <- c()
+for(i in 1:3){
+  testset = trd[trd$subject %in% testindex[[i]],]
+  trainset = trd[!(trd$subject %in% testindex[[i]]),]
+  model1_glm = glm(status1~. , data = trainset[2:563], family = binomial)
+  pred1_glm = predict(model1_glm, newdata = testset[2:563])
+  pred1_glm = ifelse(pred1_glm<0, 0,1)
+  matrix1_glm =  table(as.matrix(pred1_glm), as.matrix(testset$status1))
+  acc1_glm[i] = sum(diag(matrix1_glm))/nrow(testset)
+  print(matrix1_glm)
+  print(acc1_glm[i])
+}
+
+mean(acc1_glm)
+```
+
+## Task 2
+For task2, I used svm  with linear kernel as baseline algorithm. Compare other algorithms. It show higher accuracy, but it still need to be improved.
+```{r,include=FALSE}
+acc2_svm <- c()
+
+for(i in 1:3){
+  testset = trd[trd$subject %in% testindex[[i]],]
+  trainset = trd[!(trd$subject %in% testindex[[i]]),]
+  model_svm = svm(factor(status2)~.,data=trainset[2:564],kernel = "linear",family = multinomial,tolerance = 0.01)
+  preds_svm = predict(model_svm, newdata = testset[,2:564])
+  matrix_svm = table(preds_svm, as.matrix(testset[564]))
+  acc2_svm[i] = sum(diag(matrix_svm)/nrow(testset))
+  print(matrix_svm)
+  print(acc2_svm[i])
+}
+
+mean(acc2_svm)
+
+```
+
+
+
+
+# Problem 5 final algorithm
+## Task1
+For task 1, logistic regression model shows high accuracy, however it has some problem with identifying static behavior, some of the static behavior are misclassified as dynamic behavior, therefore I changed the threshold from 0 to -1 , and fixed the problem.
+```{r,include=FALSE}
+#GLM model
+acc1_glm2 <- c()
+for(i in 1:3){
+  testset = trd[trd$subject %in% testindex[[i]],]
+  trainset = trd[!(trd$subject %in% testindex[[i]]),]
+  model1_glm2 = glm(status1~. , data = trainset[2:563], family = binomial)
+  pred1_glm2 = predict(model1_glm2, newdata = testset[2:563])
+  pred1_glm2 = ifelse(pred1_glm2< (-1), 0,1)
+  matrix1_glm2= table(as.matrix(pred1_glm2), as.matrix(testset$status1))
+  acc1_glm2[i] = sum(diag(matrix1_glm2))/nrow(testset)
+  print(matrix1_glm2)
+  print(acc1_glm2[i])
+}
+acc1_glm2
+mean(acc1_glm2)
+
+```
+
+## Task 2
+For task2, I used svm with linear kernel with Lagrangian multiplier, and add the classification from task 1 as a new variable, which improves the accuracy.
+```{r,include=FALSE}
+acc2_svm_alpha <- c()
+for(i in 1:3){
+  testset = trd[trd$subject %in% testindex[[i]],]
+  trainset = trd[!(trd$subject %in% testindex[[i]]),]
+  model_svm_alpha = alphasvm(factor(status2)~.,data=trainset[2:564],kernel = "linear", degree = 3,cost =1, tolerance= 0.02)
+  preds_svm_alpha = predict(model_svm_alpha, newdata = testset[,2:563])
+  matrix_svm_alpha = table(preds_svm_alpha, as.matrix(testset[564]))
+  acc2_svm_alpha[i] = sum(diag(matrix_svm_alpha)/nrow(testset))
+  print(matrix_svm_alpha)
+  print(acc2_svm_alpha[i])
+}
+
+mean(acc2_svm_alpha)
+
+```
+
+#Problem 6 Leaderboard performance
+
+```{r}
+
+
+
+```
+For the first submission on task 1, I give dynamic cases and static cases opposite value, which resulted in 0 accuracy, in the next submission, I changed the value of it.
+
+In the first and second submission in task2, I used random forest algorithm and knn algorithm, and I split the training data randomly into training set and test set without considering the subject index, therefore, it has high accuracy in the training data, and it does not truly reflect the model performance. In the next submissions, I test my model based on sets that split based on subject index, which gives a more accurate reflect of model performance. I tried LDA and svm with radical,linear and polynomial kernel. Among which,svm with linear kernel does best in the dataset, which means the data can be nearly perfect split by dividing different planes. Therefore I worked on improve the baseline svm model performance by using a svm with Lagrangian multiplier and add the first task result as a new variable.
+
+
+
+#Problem 7 Comment & Further improvement
+Comment: The accuracy of binary classification result is 1.000, however, both of the model are greatly time-consuming. The accuracy of binary classification result is 0.965, however, it can be improved by further adjusting the parameters and by ensemble learning.
+
+Further improvement: For task 1, the logistic regression model can be greatly improved by stepwise, which will eliminate the parameters in the model and reduce the time and cache it used. For task 2, the alpha in Lagrangian multiplier can be optimized to get better performs, also I notice that svm does better in static cases while some other model, such as knn does better in dynamic cases, there are also some models performs best in specific cases. To improve the performance of the final model, we can apply ensemble learning, such as boosting and Bayes optimal classifier.
+
