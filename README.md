@@ -17,14 +17,21 @@ However, for different individuals, there are differences in the data levels und
 ### Task 1 
 **Model:**  Fro task 1 logistic regression model and Lasso regression model are used.
 
-**Evaluation:**  three-fold cv. The reason for using 3-fold cross-validation is that the ratio of subjects between the training and testing sets is 2:1, and using 3-fold cross-validation can make the model's evaluation closest to the real results. Also, this test and training set is splited based on subject index, so it is not evenly 3 portioned, however, it is a more accurate evaluation of model comparing to randomly and equally 3-portioned..
+**Evaluation:**  Three-fold cv. The reason for using 3-fold cross-validation is that the ratio of subjects between the training and testing sets is 2:1, and using 3-fold cross-validation can make the model's evaluation closest to the real results. Also, this test and training set is splited based on subject index, so it is not evenly 3 portioned, however, it is a more accurate evaluation of model comparing to randomly and equally 3-portioned..
 
 **Lasso regression model:** For lasso regression, the baseline algorithm show a high accuracy with out optimized the lambda. And the accuracy can improve by optimized the lambda.  
 
 **Logistic regression model:** All the 561 features are used as variables and the subject index are removed. For the baseline model, some static cases are misclassfied as dynamic cases, therefore the threshold is changed from 0 to -5 to improve accuracy. Based on different dataset, the best threshold can be different.
 **Final result generating:** The final result are generated using logistic regression model with threshold of -5.
 
-### Task 2
+### Task 2  
 
+**Model:**  For task2, LDA, knn, and svm are used.  
+
+**Evaluation:**  Three-fold cv as in task2. Although some of the model have build-in cv.
+
+**LDA:** This model has high accuracy, however, is can not binary classification result as its  multicollinearity prevent lda from running.  
+
+**KNN:** based on its performance on baseline model, the cases with same behaviour may cluster together or may have relative clear linear borderline  which makes KNN a porper model. The classification result from task 1 are experimentally added in as a new variable and the result are compared with another situation where task 1 classification are used as a index to distinguish differennt training group. Under the second circumstanc, in Group 0(static) we have 4 sub classification:sitting (4), standing (5), lying (6), and static postural transition (7), and group 1(dynamic) has 3:walking (1), walking_upstairs (2), walking_downstairs (3). Under both cases, 15 is the optimized k range from(1 to 50), other number of neighbours can be tested by changing the value of k.
 
 
