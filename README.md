@@ -28,10 +28,25 @@ However, for different individuals, there are differences in the data levels und
 
 **Model:**  For task2, LDA, knn, and svm are used.  
 
-**Evaluation:**  Three-fold cv as in task2. Although some of the model have build-in cv.
+**Evaluation:**  Three-fold cv as in task2. Although some of the model have build-in cv. For some models, training data are classified by the result of first task and evaluation are performed within each group.
 
 **LDA:** This model has high accuracy, however, is can not binary classification result as its  multicollinearity prevent lda from running.  
 
 **KNN:** based on its performance on baseline model, the cases with same behaviour may cluster together or may have relative clear linear borderline  which makes KNN a porper model. The classification result from task 1 are experimentally added in as a new variable and the result are compared with another situation where task 1 classification are used as a index to distinguish differennt training group. Under the second circumstanc, in Group 0(static) we have 4 sub classification:sitting (4), standing (5), lying (6), and static postural transition (7), and group 1(dynamic) has 3:walking (1), walking_upstairs (2), walking_downstairs (3). Under both cases, 15 is the optimized k range from(1 to 50), other number of neighbours can be tested by changing the value of k.
+
+**SVM & Lagrange multiplier SVM:**  Two different ways of adding the previous classification results in training process are tried. The resistance are test from 0.01(defaulted) to 1.00, among which 0.02 showed the best performance in both models. In the Lagrange multiplier SVM, the value of alpha can be optimized with build in function.
+
+
+## Instructions on files
+```code.R```:All models used
+```training_data.txt```: The dataset for training with all the movement labeled.  
+```test_data.txt```: The dataset for testing with all no movement labeled.  
+```binary_9358.txt```: Result of task 1, Accuracy:1.000
+```multiclass_9358.txt```: Result of task 2, Accuracy:0.965
+```626problemset1.Rmd```: Problemset for the taskes
+```626 muilt.Rmd```: Models in task2
+
+
+
 
 
