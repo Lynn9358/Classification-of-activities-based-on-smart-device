@@ -38,12 +38,12 @@ However, for different individuals, there are differences in the data levels und
 
 
 ## Instructions on files
-```code.R```:All models used
-```training_data.txt```: The dataset for training with all the movement labeled.  
-```test_data.txt```: The dataset for testing with all no movement labeled.  
-```binary_9358.txt```: Result of task 1, Accuracy:1.000
-```multiclass_9358.txt```: Result of task 2, Accuracy:0.965
-```626problemset1.Rmd```: Problemset for the taskes
+```code.R```:All models used  
+```training_data.txt```: The dataset for training with all the movement labeled.     
+```test_data.txt```: The dataset for testing with all no movement labeled.       
+```binary_9358.txt```: Result of task 1, Accuracy:1.000    
+```multiclass_9358.txt```: Result of task 2, Accuracy:0.965  
+```626problemset1.Rmd```: Problemset for the taskes   
 ```626 muilt.Rmd```: Models in task2
 
 
