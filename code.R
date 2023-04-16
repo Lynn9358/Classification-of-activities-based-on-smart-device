@@ -24,7 +24,7 @@ trd$status2 <- ifelse(trd$activity <= 6, trd$activity, 7)
 trd = trd[,!colnames(trd) %in% "activity"]
 
 
-#Create training set and test set
+#Create test set index
 index = as.vector(as.numeric(rownames(table(trd$subject))))
 testindex <- list()
 testindex[[1]] = sample(index,7,replace = FALSE)
@@ -64,7 +64,7 @@ for(i in 1:3){
 }
   acc1_lasso2 = sum(acc1_lasso2)/3
 
-#BaselineGLM model with
+#BaselineGLM model with 0 as threshold
 acc1_glm <- c()
   for(i in 1:3){
     testset = trd[trd$subject %in% testindex[[i]],]
@@ -90,15 +90,23 @@ acc1_glm <- c()
     trainset = trd[!(trd$subject %in% testindex[[i]]),]
     model1_glm = glm(status1~. , data = trainset[2:563], family = binomial)
     pred1_glm = predict(model1_glm, newdata = testset[2:563])
-    pred1_glm = ifelse(pred1_glm<-1, 0,1)
+    pred1_glm = ifelse(pred1_glm<-5, 0,1)
     matrix1_glm = table(as.matrix(pred1_glm), as.matrix(testset$status1))
     acc1_glm[i] = sum(diag(matrix1_glm))/nrow(testset)
   }
   acc1_glm = sum(acc1_glm)/3
+  
+#GLM for all training data
+model_glm = glm(status1~. , data = trd[2:563], family = binomial)
+pred_glm = predict(model_glm, newdata = tsd[,2:562])
+pred_glm = ifelse(pred_glm<-5, 0,1)
+write.table(as.numeric(pred_glm), file = "binary_9358.txt", sep = "", row.names = FALSE, col.names = FALSE)
 
-  
+
 #Task 2
-  
+#add the result of binary classification as new variable
+tsd$status1 = binary_9358
+tsd$status1<- as.numeric(unlist(tsd$status1))
 #lda model(remove status1 because its strong multicollinearity prevent lda from running)
 acc_lda <- c()
 for(i in 1:3){
