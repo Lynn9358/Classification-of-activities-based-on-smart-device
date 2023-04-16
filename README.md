@@ -17,12 +17,14 @@ However, for different individuals, there are differences in the data levels und
 ### Task 1 
 **Model:**  Fro task 1 logistic regression model and Lasso regression model are used.
 
-**Evaluation:**  three-fold cv. The reason for using 3-fold cross-validation is that the ratio of subjects between the training and testing sets is 2:1, and using 3-fold cross-validation can make the model's evaluation closest to the real results.  
+**Evaluation:**  three-fold cv. The reason for using 3-fold cross-validation is that the ratio of subjects between the training and testing sets is 2:1, and using 3-fold cross-validation can make the model's evaluation closest to the real results. Also, this test and training set is splited based on subject index, so it is not evenly 3 portioned, however, it is a more accurate evaluation of model comparing to randomly and equally 3-portioned..
 
 **Lasso regression model:** For lasso regression, the baseline algorithm show a high accuracy with out optimized the lambda. And the accuracy can improve by optimized the lambda.  
 
-**Logistic regression model:** All the 561 features are used as variables and the 
-**Final result generating:** The final result are generated using logistic regression model with threshold of zero
+**Logistic regression model:** All the 561 features are used as variables and the subject index are removed. For the baseline model, some static cases are misclassfied as dynamic cases, therefore the threshold is changed from 0 to -5 to improve accuracy. Based on different dataset, the best threshold can be different.
+**Final result generating:** The final result are generated using logistic regression model with threshold of -5.
+
+### Task 2
 
 
 
