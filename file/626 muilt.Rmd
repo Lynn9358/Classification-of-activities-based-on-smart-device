@@ -1,0 +1,306 @@
+---
+title: "626_multi"
+author: "Wenjing Li"
+date: "2023-04-11"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(randomForest)
+library(doParallel)
+library(caret)
+library(randomForestSRC)
+library(gbm)
+library(xgboost)
+library(e1071)
+library(SwarmSVM)
+library(class)
+```
+
+#Testing and training data
+```{r}
+set.seed(224)
+trd = training_data
+tsd = test_data
+trd$status1 <- ifelse(trd$activity > 3,0,1)
+trd$status2 <- ifelse(trd$activity <= 6, trd$activity, 7)
+trd = trd[,!colnames(trd) %in% "activity"]
+tsd$status1 = binary_9358
+tsd$status1<- as.numeric(unlist(tsd$status1))
+```
+
+```{r}
+
+trd$rn <- 1:nrow(trd)
+tsd$rn <- 1:nrow(tsd)
+testindex = sample(as.vector(as.numeric(rownames(table(trd$subject)))),8,replace = FALSE)
+testset = trd[trd$subject %in% testindex,]
+trainset = trd[!(trd$subject %in% testindex),]
+```
+
+#glm
+```{r}
+#without classific the data
+model =  glm(status2~., x = trainset[2:564], family = mutinomial)
+matrix_knn= table(preds_knn, as.matrix(testset[564]))
+acc_knn = sum(diag(matrix_knn))/nrow(testset)
+matrix_knn
+acc_knn
+```
+
+
+
+#knn
+```{r}
+#without classific the data
+preds_knn =  knn(train = trainset[2:563], test=testset[,2:563] , trainset$status2, k= 8)
+matrix_knn= table(preds_knn, as.matrix(testset[564]))
+acc_knn = sum(diag(matrix_knn))/nrow(testset)
+matrix_knn
+acc_knn
+```
+
+```{r}
+#classified  the data into still and dynamic
+trainset_st = trainset[trainset$status1 == 0,] 
+trainset_dy = trainset[trainset$status1 == 1,] 
+testset_st = testset[testset$status1== 0,]
+testset_dy = testset[testset$status1== 1,] 
+```
+
+```{r}
+preds_knn_dy =  knn(train = trainset_dy[2:563], test=testset_dy[,2:563] , trainset_dy$status2, k= 5)
+preds_knn_st =  knn(train = trainset_st[2:563], test=testset_st[,2:563], trainset_st$status2, k= 5)
+                    
+matrix_knn_dy = table(preds_knn_dy, as.matrix(testset_dy[564]))
+matrix_knn_st = table(preds_knn_st, as.matrix(testset_st[564]))
+
+acc_knn_dy = sum(diag(matrix_knn_dy)) /nrow(testset_dy)
+acc_knn_st = sum(diag(matrix_knn_st)) /nrow(testset_st)
+
+acc_knn_2 = (sum(diag(matrix_knn_st))+ sum( diag(matrix_knn_dy))) /nrow(testset)
+
+
+matrix_knn_dy
+matrix_knn_st 
+
+acc_knn_2a 
+acc_knn_2b 
+acc_knn_2
+
+```
+
+#svmfit
+```{r}
+model_svm = svm(factor(status2)~.,data=trainset[2:564],kernel = "linear",family = multinomial,tolerance = 0.02)
+preds_svm = predict(model_svm, newdata = testset[,2:563])
+matrix_svm = table(preds_svm, as.matrix(testset[564]))
+acc_svm = sum(diag(matrix_svm)/nrow(testset))
+matrix_svm
+acc_svm
+```
+
+#svmfit2
+```{r}
+# no different with the first one
+model_svm2 = svm(factor(status2)~.-status1+factor(status1),data=trainset[2:564],kernel = "linear",family = multinomial)
+preds_svm2 = predict(model_svm2, newdata = testset[,2:563])
+matrix_svm2 = table(preds_svm2, as.matrix(testset[564]))
+acc_svm2 = sum(diag(matrix_svm2)/nrow(testset))
+matrix_svm2
+acc_svm2
+```
+
+
+#svm_alpha
+```{r}
+model_svm_alpha = alphasvm(factor(status2)~.,data=trainset[2:564],kernel = "linear",   degree = 3,cost =1, tolerance= 0.02)
+preds_svm_alpha = predict(model_svm_alpha, newdata = testset[,2:563])
+matrix_svm_alpha = table(preds_svm_alpha, as.matrix(testset[564]))
+acc_svm_alpha = sum(diag(matrix_svm_alpha)/nrow(testset))
+matrix_svm_alpha
+acc_svm_alpha
+
+
+acc_svm_alpha_1 = sum(diag(matrix_svm_alpha)[1:3])/sum(testset$status2 == 1, testset$status2 == 2, testset$status2 == 3)
+
+acc_svm_alpha_2 = sum(diag(matrix_svm_alpha)[4:7])/sum(testset$status2 == 4, testset$status2 == 5, testset$status2 == 6, testset$status2 ==7)
+acc_svm_alpha_1
+acc_svm_alpha_2
+
+
+```
+
+```{r}
+#svm_alpha_dynamic only
+model_svm_alpha_dy = alphasvm(factor(status2)~.,data=trainset_dy[2:564],kernel = "linear",   degree = 3,cost =1, tolerance= 0.02)
+preds_svm_alpha_dy = predict(model_svm_alpha_dy, newdata = testset_dy[,2:563])
+matrix_svm_alpha_dy = table(preds_svm_alpha_dy, as.matrix(testset_dy[564]))
+acc_svm_alpha_dy = sum(diag(matrix_svm_alpha_dy)/nrow(testset_dy))
+matrix_svm_alpha_dy
+acc_svm_alpha_dy
+
+#svm_alpha_still only
+model_svm_alpha_st = alphasvm(factor(status2)~.,data=trainset_st[2:564],kernel = "linear",   degree = 3,cost =1, tolerance= 0.02)
+preds_svm_alpha_st = predict(model_svm_alpha_st, newdata = testset_st[,2:563])
+matrix_svm_alpha_st = table(preds_svm_alpha_st, as.matrix(testset_st[564]))
+acc_svm_alpha_st = sum(diag(matrix_svm_alpha_st)/nrow(testset_st))
+matrix_svm_alpha_st
+acc_svm_alpha_st
+
+
+
+```
+
+
+
+
+
+# combine the svm_alpha in dynamic and kkn in still together
+
+```{r}
+preds_dy = as.matrix(preds_svm_alpha_dy)
+preds_dy = cbind(rownames(preds_dy),preds_dy)
+table(preds_svm_alpha_dy,as.matrix(testset_dy[564]))
+colnames(preds_dy) <- NULL
+
+preds_st = as.matrix(cbind(testset_st[565], preds_knn_st))
+colnames(preds_st) <- NULL
+table(as.matrix(preds_knn_st),as.matrix(testset_st[564]))
+
+preds_combine = rbind(preds_dy,preds_st)
+preds_combine = as.data.frame(preds_combine)
+preds_combine$V1 <- as.numeric(preds_combine$V1 )
+preds_combine$V2 <- as.numeric(preds_combine$V2 )
+
+preds_combine = preds_combine[order(preds_combine$V1),]
+
+
+matrix_combine=table(preds_combine$V2,as.matrix(testset[564]))
+acc_combine = sum(diag(matrix_combine)/nrow(testset))
+matrix_combine
+acc_combine
+
+```
+# combine the svm_alpha in still and kkn in dynamic together
+```{r}
+preds_st_svm = as.matrix(preds_svm_alpha_st)
+preds_st_svm = cbind(rownames(preds_st_svm),preds_st_svm)
+table(preds_svm_alpha_st,as.matrix(testset_st[564]))
+colnames(preds_st_svm) <- NULL
+
+preds_dy_knn = as.matrix(cbind(testset_dy[565], preds_knn_dy))
+colnames(preds_dy_knn) <- NULL
+table(as.matrix(preds_knn_dy),as.matrix(testset_dy[564]))
+
+preds_combine2 = rbind(preds_st_svm,preds_dy_knn)
+preds_combine2 = as.data.frame(preds_combine2)
+preds_combine2$V1 <- as.numeric(preds_combine2$V1 )
+preds_combine2$V2 <- as.numeric(preds_combine2$V2 )
+
+preds_combine2 = preds_combine2[order(preds_combine2$V1),]
+
+
+matrix_combine2=table(preds_combine2$V2,as.matrix(testset[564]))
+acc_combine2 = sum(diag(matrix_combine2)/nrow(testset))
+matrix_combine2
+acc_combine2
+
+```
+
+
+
+
+
+# AAA result combine the svm_alpha in still and kkn in dynamic together for all result 
+```{r}
+
+#classified  the data into still and dynamic
+testdata_st = tsd[tsd$status1== 0,]
+testdata_dy = tsd[tsd$status1== 1,] 
+
+#classified  the data into still and dynamic
+traindata_st = trd[trd$status1== 0,]
+traindata_dy = trd[trd$status1== 1,] 
+
+
+
+#Training still data using svm_alpha
+model_st_all = alphasvm(factor(status2)~.,data=traindata_st[2:564],kernel = "linear",   degree = 3,cost =1, tolerance= 0.02)
+preds_st_all = predict(model_st_all, newdata = testdata_st[,2:563])
+
+#training dynamic data using KNN
+preds_dy_all = knn(train = traindata_dy[2:563], test=testdata_dy[,2:563] , traindata_dy$status2, k= 18)
+
+
+#Combine datas together
+preds_st_all = as.matrix(preds_st_all)
+preds_st_all = cbind(rownames(preds_st_all),preds_st_all)
+colnames(preds_st_all) <- NULL
+
+preds_dy_all = as.matrix(cbind(testdata_dy[564], preds_dy_all))
+colnames(preds_dy_all) <- NULL
+
+preds_all = rbind(preds_st_all,preds_dy_all)
+preds_all = as.data.frame(preds_all)
+preds_all$V1 <- as.numeric(preds_all$V1 )
+preds_all$V2 <- as.numeric(preds_all$V2 )
+
+preds_all = preds_all[order(preds_all$V1),]
+
+
+matrix=table(preds_all$V2, preds_alpha_all)
+acc = sum(diag(matrix)/nrow(tsd))
+matrix
+acc
+
+```
+
+
+
+
+
+#cluster SVM
+```{r}
+model_csvm = clusterSVM(x = trainset[,2:563], y = as.character(trainset[,564]),centers = 6)
+preds_csvm = predict(model_csvm, newdata = testset[,2:563])
+matrix_csvm = table(as.matrix(preds_csvm$predictions),as.matrix(testset[564]))
+acc_csvm = sum(diag(matrix_csvm)/nrow(testset))
+matrix_csvm
+acc_csvm 
+
+```
+#dc SVM
+```{r}
+model_dcsvm = dcSVM(x = trainset[,2:563], y = as.character(trainset[,564]), k = 2 ,
+  m= 200, kernel = 1 , max.levels=2)
+preds_dcsvm = predict(model_dcsvm, newdata = testset[,2:563])
+matrix_dcsvm = table(preds_dcsvm,as.matrix(testset[564]))
+acc_dcsvm = sum(diag(matrix_dcsvm)/nrow(testset))
+matrix_dcsvm
+acc_dcsvm 
+
+```
+
+
+#Use actually test data
+```{r}
+model_svm_all = alphasvm(factor(status2)~.,data=trd[2:564],kernel = "linear",degree = 3,cost =1, tolerance= 0.02)   
+preds_svm_all = predict(model_svm_all, newdata = tsd[,2:563])
+```
+
+```{r}
+model_alpha_all = alphasvm(factor(status2)~.,data=trd[2:564],kernel = "linear",degree = 3,cost =1, tolerance= 0.02)   
+preds_alpha_all = predict(model_alpha_all, newdata = tsd[,2:563])
+
+matrix_alpha_all = table(preds_alpha_all, as.matrix(tsd[563]))
+
+```
+
+#Generate prediction
+```{r}
+write.table(as.numeric(preds_all$V2), file = "multiclass_9358.txt", sep = "", row.names = FALSE, col.names = FALSE)
+
+```
+
