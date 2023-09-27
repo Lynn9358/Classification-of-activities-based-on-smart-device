@@ -15,7 +15,7 @@ However, for different individuals, there are differences in the data levels und
 
 ## Task Procedure
 ### Task 1 
-**Model:**  Fro task 1 logistic regression model and Lasso regression model are used.
+**Model:**  For task 1 logistic regression model and Lasso regression model are used.
 
 **Evaluation:**  Three-fold cv. The reason for using 3-fold cross-validation is that the ratio of subjects between the training and testing sets is 2:1, and using 3-fold cross-validation can make the model's evaluation closest to the real results. Also, this test and training set is splited based on subject index, so it is not evenly 3 portioned, however, it is a more accurate evaluation of model comparing to randomly and equally 3-portioned..
 
