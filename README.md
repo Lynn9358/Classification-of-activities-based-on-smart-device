@@ -1,4 +1,4 @@
-# BIOSTAT626-Midterm1
+# Classification-of-activities-based-on-smart-device
 
 ## Task Description 
 
